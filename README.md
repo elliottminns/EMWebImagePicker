@@ -1,7 +1,7 @@
 EMWebImagePicker
 ==========
 
-An Image picker for URL based images
+An iOS Image picker for URL based images
 
 ## Requirements
 * Xcode 5 or higher
