@@ -275,9 +275,7 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
 
 #pragma mark - UICollectionViewDelegate Methods
 
-- (BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    BOOL selected = [collectionView cellForItemAtIndexPath:indexPath].selected;
-    
+- (BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath {    
     EMWebImageModel *model = self.images[indexPath.row];
     if (model.selected) {
         return NO;
