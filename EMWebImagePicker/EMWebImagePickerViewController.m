@@ -16,13 +16,14 @@ NS_ENUM(NSInteger, kCellTag) {
     CellTagTickImageView = 6
 };
 
-@interface EMWebImagePickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
+@interface EMWebImagePickerViewController () <UICollectionViewDataSource,
+UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIScrollViewDelegate>
 // Views
 @property (nonatomic, strong) UINavigationBar *navigationBar;
 @property (nonatomic, strong) UICollectionView *collectionView;
 
 // Data
-@property (nonatomic, strong) NSArray *images;
+@property (nonatomic, strong) NSMutableArray *images;
 
 // Blocks
 @property (nonatomic, copy) EMWebImagePickerSelectedBlock completedBlock;
@@ -34,6 +35,13 @@ NS_ENUM(NSInteger, kCellTag) {
 // Multiple Selection.
 @property (nonatomic, strong) NSMutableArray *selectedImages;
 @property (nonatomic, strong) NSMutableArray *selectedURLs;
+
+// Scrolling.
+@property (nonatomic, assign) BOOL userDragging;
+@property (nonatomic, assign) BOOL noMorePaging;
+
+// Pagination.
+@property (nonatomic, strong) UIActivityIndicatorView *activityIndicator;
 
 @end
 
@@ -50,23 +58,7 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
          cancelled:(EMPickerBlock)cancelled {
     self = [super init];
     if (self) {
-        NSMutableArray *imageModels = [[NSMutableArray alloc] initWithCapacity:urls.count];
-        for (id obj in urls) {
-            EMWebImageModel *model = [[EMWebImageModel alloc] init];
-            model.selected = (self.type == EMWebImagePickerTypeMultipleDeselect);
-            if ([obj isKindOfClass:[NSString class]]) {
-                NSURL *url = [NSURL URLWithString:obj];
-                model.url = url;
-            } else if ([obj isKindOfClass:[NSURL class]]) {
-                model.url = obj;
-            }
-            
-            if (model.url) {
-                [imageModels addObject:model];
-            }
-        }
-        
-        self.images = imageModels;
+        self.images = [[NSMutableArray alloc] initWithArray:[self cleanArray:urls]];
         
         self.completedBlock = completed;
         self.cancelledBlock = cancelled;
@@ -79,6 +71,26 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     return self;
 }
 
+- (NSArray *)cleanArray:(NSArray *)urlArray {
+    NSMutableArray *cleanArray = [[NSMutableArray alloc] init];
+    
+    for (id obj in urlArray) {
+        EMWebImageModel *model = [[EMWebImageModel alloc] init];
+        model.selected = (self.type == EMWebImagePickerTypeMultipleDeselect);
+        if ([obj isKindOfClass:[NSString class]]) {
+            NSURL *url = [NSURL URLWithString:obj];
+            model.url = url;
+        } else if ([obj isKindOfClass:[NSURL class]]) {
+            model.url = obj;
+        }
+        
+        if (model.url) {
+            [cleanArray addObject:model];
+        }
+    }
+    return cleanArray;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
@@ -86,13 +98,15 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     self.collectionView.delegate = self;
     self.collectionView.dataSource = self;
     [self.collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:identifier];
-    self.collectionView.backgroundColor = [UIColor blackColor];
+    self.collectionView.backgroundColor = [UIColor clearColor];
     self.collectionView.bouncesZoom = YES;
     self.collectionView.scrollEnabled = YES;
     self.collectionView.alwaysBounceVertical = YES;
     self.collectionView.bounces = YES;
     BOOL allows = (self.type != EMWebImagePickerTypeSingle);
     self.collectionView.allowsMultipleSelection = allows;
+    
+    self.view.backgroundColor = [UIColor blackColor];
 
     if (self.type == EMWebImagePickerTypeMultipleDeselect) {
         for (NSInteger i = 0; i < self.images.count; i++) {
@@ -102,8 +116,6 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     }
     
     [self.view addSubview:self.collectionView];
-
-    self.view.backgroundColor = [UIColor whiteColor];
     
     self.navigationBar = [[UINavigationBar alloc] init];
     [self.view addSubview:self.navigationBar];
@@ -118,6 +130,12 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     
     [self.view setNeedsUpdateConstraints];
     [self.view updateConstraintsIfNeeded];
+    
+    if (self.pagingEnabled) {
+        self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
+        [self.activityIndicator sizeToFit];
+        [self.view addSubview:self.activityIndicator];
+    }
 }
 
 - (void)setType:(EMWebImagePickerType)type {
@@ -154,8 +172,15 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
                                                                       metrics:nil
                                                                         views:views]];
     
-    self.collectionView.contentInset = UIEdgeInsetsMake(69, 5, 5, 5);
+    CGFloat bottomInset = self.pagingEnabled ? 55 : 5;
+    self.collectionView.contentInset = UIEdgeInsetsMake(69, 5, bottomInset, 5);
     self.collectionView.scrollIndicatorInsets = UIEdgeInsetsMake(64, 0, 0, 0);
+    
+    if (self.pagingEnabled) {
+        CGPoint activityCenter = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height - 25);
+        self.activityIndicator.center = activityCenter;
+        self.activityIndicator.hidesWhenStopped = YES;
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -260,6 +285,33 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     return cell;
 }
 
+- (void)contentAtBottom {
+    
+    BOOL canRecieve = NO;
+    if (self.delegate && [self.delegate respondsToSelector:@selector(webImagePickerCanRecieveMoreContent:)]) {
+        canRecieve = [self.delegate webImagePickerCanRecieveMoreContent:self];
+    }
+    if (canRecieve) {
+        self.activityIndicator.hidden = NO;
+        [self.activityIndicator startAnimating];
+        
+        if (self.delegate && [self.delegate respondsToSelector:@selector(webImagePickerRequestImagesForNextPage:)]) {
+            NSArray *urls = [self cleanArray:[self.delegate webImagePickerRequestImagesForNextPage:self]];
+            [self.images addObjectsFromArray:urls];
+            [self.activityIndicator stopAnimating];
+            [self.collectionView reloadData];
+        } else if (self.delegate && [self.delegate respondsToSelector:@selector(webImagePickerRequestImagesForNextPage:withSuccess:failure:)]) {
+            [self.delegate webImagePickerRequestImagesForNextPage:self withSuccess:^(NSArray *array) {
+                [self.images addObjectsFromArray:[self cleanArray:array]];
+                [self.activityIndicator stopAnimating];
+                [self.collectionView reloadData];
+            } failure:^(NSError *error) {
+                NSLog(@"EMWebImageViewController Error");
+            }];
+        }
+    }
+}
+
 #pragma mark - UICollectionViewDelegateFlowLayout
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -329,6 +381,32 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
         self.selectedModel.selected = NO;
         [self.collectionView reloadItemsAtIndexPaths:@[indexPath]];
     }
+}
+
+#pragma mark - UIScrollViewDelegate Methods
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (self.userDragging && self.pagingEnabled) {
+        // Check if we are at the bottom.
+        CGFloat bottom = scrollView.contentSize.height - [UIScreen mainScreen].bounds.size.height;
+        if (scrollView.contentOffset.y >= bottom) {
+            if (!self.activityIndicator.isAnimating) {
+                [self contentAtBottom];
+            }
+        }
+    }
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    self.userDragging = YES;
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    self.userDragging = NO;
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    self.userDragging = decelerate;
 }
 
 #pragma mark - Status Bar

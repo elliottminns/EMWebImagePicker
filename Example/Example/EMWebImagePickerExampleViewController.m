@@ -68,6 +68,7 @@
 - (IBAction)chooseSinglePhotoButtonTapped:(id)sender {
     EMWebImagePickerViewController *webImagePicker = [[EMWebImagePickerViewController alloc] initWithURLs:self.urls];
     webImagePicker.delegate = self;
+    webImagePicker.pagingEnabled = YES;
     [self presentViewController:webImagePicker animated:YES completion:nil];
 }
 
@@ -132,6 +133,34 @@
 
 - (void)webImagePickerDidCancel:(EMWebImagePickerViewController *)picker {
     [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (NSArray *)webImagePickerRequestImagesForNextPage:(EMWebImagePickerViewController *)picker {
+    NSArray *urls = [self.urls sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        return NSOrderedDescending;
+    }];
+    
+    return (urls);
+}
+
+- (void)webImagePickerRequestImagesForNextPage:(EMWebImagePickerViewController *)picker
+                                   withSuccess:(EMWebImagePickerArrayBlock)success
+                                       failure:(EMWebImagePickerErrorBlock)failure {
+    NSArray *urls = [self.urls sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        return NSOrderedDescending;
+    }];
+    
+    success(urls);
+}
+
+- (BOOL)webImagePickerCanRecieveMoreContent:(EMWebImagePickerViewController *)picker {
+    static NSInteger number = 0;
+    if (number == 0) {
+        number++;
+        return YES;
+    } else {
+        return NO;
+    }
 }
 
 @end

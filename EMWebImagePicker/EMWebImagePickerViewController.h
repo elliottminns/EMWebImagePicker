@@ -12,6 +12,8 @@
 
 typedef void (^EMWebImagePickerSelectedBlock)(EMWebImagePickerViewController *picker, NSArray *selectedIndicies);
 typedef void (^EMPickerBlock)(EMWebImagePickerViewController *picker);
+typedef void (^EMWebImagePickerArrayBlock)(NSArray *array);
+typedef void (^EMWebImagePickerErrorBlock)(NSError *error);
 
 typedef NS_ENUM(NSInteger, EMWebImagePickerType) {
     EMWebImagePickerTypeSingle,
@@ -22,6 +24,12 @@ typedef NS_ENUM(NSInteger, EMWebImagePickerType) {
 @protocol EMWebImagePickerViewControllerDelegate <NSObject>
 - (void)webImagePicker:(EMWebImagePickerViewController *)picker didChooseIndicies:(NSArray *)selectedIndicies;
 - (void)webImagePickerDidCancel:(EMWebImagePickerViewController *)picker;
+- (BOOL)webImagePickerCanRecieveMoreContent:(EMWebImagePickerViewController *)picker;
+@optional
+- (NSArray *)webImagePickerRequestImagesForNextPage:(EMWebImagePickerViewController *)picker;
+- (void)webImagePickerRequestImagesForNextPage:(EMWebImagePickerViewController *)picker
+                                   withSuccess:(EMWebImagePickerArrayBlock)success
+                                       failure:(EMWebImagePickerErrorBlock)failure;
 @end
 
 @interface EMWebImagePickerViewController : UIViewController
@@ -33,5 +41,6 @@ typedef NS_ENUM(NSInteger, EMWebImagePickerType) {
 
 @property (nonatomic, weak) id<EMWebImagePickerViewControllerDelegate> delegate;
 @property (nonatomic, assign) EMWebImagePickerType type;
+@property (nonatomic, assign) BOOL pagingEnabled;
 
 @end
