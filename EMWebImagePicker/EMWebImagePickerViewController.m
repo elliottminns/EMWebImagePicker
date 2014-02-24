@@ -9,6 +9,7 @@
 #import "EMWebImagePickerViewController.h"
 #import "UIImageView+WebCache.h"
 #import "EMWebImageModel.h"
+#import "DACircularProgressView.h"
 
 
 NS_ENUM(NSInteger, kCellTag) {
@@ -237,10 +238,15 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     if (!cell) {
         cell = [[UICollectionViewCell alloc] init];
     }
-    if (![cell.contentView viewWithTag:5]) {
+    if (![cell.contentView viewWithTag:CellTagImageView]) {
+        DACircularProgressView *progress = [[DACircularProgressView alloc] initWithFrame:CGRectZero];//CGRectMake(0, 0, 50, 50)];
+        progress.thicknessRatio = 0.2;
+        progress.tag = 7;
+        
         UIImageView *image = [[UIImageView alloc] init];
         image.tag = CellTagImageView;
         [cell.contentView addSubview:image];
+
         image.contentMode = UIViewContentModeScaleAspectFill;
         image.clipsToBounds = YES;
         
@@ -250,7 +256,10 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
         [cell.contentView addSubview:tickImage];
         cell.clipsToBounds = YES;
         
-        NSDictionary *views = NSDictionaryOfVariableBindings(image, tickImage);
+        UIView *superview = cell.contentView;
+        NSDictionary *views = NSDictionaryOfVariableBindings(superview, image, tickImage, progress);
+        
+        [cell.contentView addSubview:progress];
         
         image.translatesAutoresizingMaskIntoConstraints = NO;
         [cell.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[image]-0-|" options:0 metrics:nil views:views]];
@@ -259,6 +268,16 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
         tickImage.translatesAutoresizingMaskIntoConstraints = NO;
         [cell.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[tickImage]-0-|" options:0 metrics:nil views:views]];
         [cell.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[tickImage]" options:0 metrics:nil views:views]];
+        
+        progress.translatesAutoresizingMaskIntoConstraints = NO;
+        [cell.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[superview]-(<=1)-[progress(25)]"
+                                                                                 options:NSLayoutFormatAlignAllCenterY
+                                                                                 metrics:nil
+                                                                                   views:views]];
+        [cell.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[superview]-(<=1)-[progress(25)]"
+                                                                                 options:NSLayoutFormatAlignAllCenterX
+                                                                                 metrics:nil
+                                                                                   views:views]];
     }
     
     EMWebImageModel *object = self.images[indexPath.row];
@@ -268,11 +287,19 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     }
     
     NSURL *imageUrl = object.url;
-    UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:5];
+    UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:CellTagImageView];
     imageView.alpha = 0.0f;
     __weak UIImageView *wImageView = imageView;
-    [imageView setImageWithURL:imageUrl completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+    
+    DACircularProgressView *progress = (DACircularProgressView *)[cell.contentView viewWithTag:7];
+    progress.hidden = NO;
+    progress.progress = 0;
+    
+    [imageView setImageWithURL:imageUrl placeholderImage:nil options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+        ((DACircularProgressView *)[wImageView.superview viewWithTag:7]).progress = (CGFloat)receivedSize / (CGFloat)expectedSize;
+    } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
         wImageView.alpha = 1.0f;
+        progress.hidden = YES;
     }];
     
     UIImageView *tickImage = (UIImageView *)[cell.contentView viewWithTag:CellTagTickImageView];

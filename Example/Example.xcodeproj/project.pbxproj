@@ -39,6 +39,7 @@
 		4F4D482918B674670049AF05 /* EMWebImagePickerChecked.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F4D482718B674670049AF05 /* EMWebImagePickerChecked.png */; };
 		4F4D482A18B674670049AF05 /* EMWebImagePickerChecked@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F4D482818B674670049AF05 /* EMWebImagePickerChecked@2x.png */; };
 		4FB0F95818B77B6500A5EA5B /* EMWebImageModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FB0F95718B77B6500A5EA5B /* EMWebImageModel.m */; };
+		4FFD413418BB88970097B0E9 /* DACircularProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FFD413318BB88970097B0E9 /* DACircularProgressView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +107,8 @@
 		4F4D482818B674670049AF05 /* EMWebImagePickerChecked@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "EMWebImagePickerChecked@2x.png"; sourceTree = "<group>"; };
 		4FB0F95618B77B6500A5EA5B /* EMWebImageModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EMWebImageModel.h; sourceTree = "<group>"; };
 		4FB0F95718B77B6500A5EA5B /* EMWebImageModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMWebImageModel.m; sourceTree = "<group>"; };
+		4FFD413218BB88970097B0E9 /* DACircularProgressView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DACircularProgressView.h; sourceTree = "<group>"; };
+		4FFD413318BB88970097B0E9 /* DACircularProgressView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DACircularProgressView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,6 +168,7 @@
 		4F4D47BE18B65B3E0049AF05 /* Example */ = {
 			isa = PBXGroup;
 			children = (
+				4FFD413118BB88970097B0E9 /* DACircularProgress */,
 				4F4D47F318B666370049AF05 /* SDWebImage */,
 				4F4D47EF18B65B8C0049AF05 /* EMWebImagePicker */,
 				4F4D47C718B65B3E0049AF05 /* EMAppDelegate.h */,
@@ -255,6 +259,15 @@
 				4F4D481018B666370049AF05 /* UIImageView+WebCache.m */,
 			);
 			path = SDWebImage;
+			sourceTree = "<group>";
+		};
+		4FFD413118BB88970097B0E9 /* DACircularProgress */ = {
+			isa = PBXGroup;
+			children = (
+				4FFD413218BB88970097B0E9 /* DACircularProgressView.h */,
+				4FFD413318BB88970097B0E9 /* DACircularProgressView.m */,
+			);
+			path = DACircularProgress;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -362,6 +375,7 @@
 				4F4D47CF18B65B3E0049AF05 /* EMWebImagePickerExampleViewController.m in Sources */,
 				4F4D481418B666380049AF05 /* SDWebImageCompat.m in Sources */,
 				4F4D481B18B666380049AF05 /* UIImage+GIF.m in Sources */,
+				4FFD413418BB88970097B0E9 /* DACircularProgressView.m in Sources */,
 				4F4D481918B666380049AF05 /* SDWebImagePrefetcher.m in Sources */,
 				4F4D47C918B65B3E0049AF05 /* EMAppDelegate.m in Sources */,
 				4F4D47F218B65BB20049AF05 /* EMWebImagePickerViewController.m in Sources */,
