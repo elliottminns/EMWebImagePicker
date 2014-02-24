@@ -94,10 +94,11 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     BOOL allows = (self.type != EMWebImagePickerTypeSingle);
     self.collectionView.allowsMultipleSelection = allows;
 
-    for (NSInteger i = 0; i < self.images.count; i++) {
-        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
-        [self.collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
-        
+    if (self.type == EMWebImagePickerTypeMultipleDeselect) {
+        for (NSInteger i = 0; i < self.images.count; i++) {
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
+            [self.collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
+        }
     }
     
     [self.view addSubview:self.collectionView];
