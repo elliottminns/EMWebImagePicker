@@ -295,7 +295,7 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     progress.hidden = NO;
     progress.progress = 0;
     
-    [imageView setImageWithURL:imageUrl placeholderImage:nil options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+    [imageView setImageWithURL:imageUrl placeholderImage:nil options:0 progress:^(NSUInteger receivedSize, NSUInteger expectedSize) {
         ((DACircularProgressView *)[wImageView.superview viewWithTag:7]).progress = (CGFloat)receivedSize / (CGFloat)expectedSize;
     } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
         wImageView.alpha = 1.0f;
