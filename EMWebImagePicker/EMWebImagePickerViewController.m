@@ -109,10 +109,16 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     
     self.view.backgroundColor = [UIColor blackColor];
 
-    if (self.type == EMWebImagePickerTypeMultipleDeselect) {
-        for (NSInteger i = 0; i < self.images.count; i++) {
-            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
-            [self.collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
+    for (NSInteger i = 0, ii = self.images.count; i < ii; i++) {
+        
+        EMWebImageModel *model = self.images[i];
+        
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
+        
+        if (model.selected) {
+            [self.collectionView selectItemAtIndexPath:indexPath
+                                              animated:NO
+                                        scrollPosition:UICollectionViewScrollPositionNone];
         }
     }
     
@@ -139,6 +145,8 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     }
 }
 
+#pragma mark - Setters
+
 - (void)setType:(EMWebImagePickerType)type {
     _type = type;
     
@@ -147,9 +155,35 @@ static NSString *const identifier = @"EMWebImageCollectionCell";
     
     self.collectionView.allowsMultipleSelection = (type != EMWebImagePickerTypeSingle);
     
-    if (type == EMWebImagePickerTypeMultipleDeselect) {
+    if (type == EMWebImagePickerTypeMultipleDeselect && !self.previousSelectedUrls) {
         for (EMWebImageModel *model in self.images) {
             model.selected = YES;
+        }
+    }
+}
+
+- (void)setPreviousSelectedUrls:(NSArray *)previousSelectedUrls {
+    
+    NSMutableArray *urls = [[NSMutableArray alloc] init];
+    // Set previous selected URLs to be NSURL.
+    for (id obj in previousSelectedUrls) {
+        NSURL *url;
+        if ([obj isKindOfClass:[NSURL class]]) {
+            url = obj;
+        } else if ([obj isKindOfClass:[NSString class]]) {
+            url = [NSURL URLWithString:obj];
+        }
+        
+        [urls addObject:url];
+    }
+    
+    _previousSelectedUrls = urls;
+    
+    for (EMWebImageModel *model in self.images) {
+        if ([_previousSelectedUrls containsObject:model.url]) {
+            model.selected = YES;
+        } else {
+            model.selected = NO;
         }
     }
 }

@@ -42,5 +42,6 @@ typedef NS_ENUM(NSInteger, EMWebImagePickerType) {
 @property (nonatomic, weak) id<EMWebImagePickerViewControllerDelegate> delegate;
 @property (nonatomic, assign) EMWebImagePickerType type;
 @property (nonatomic, assign) BOOL pagingEnabled;
+@property (nonatomic, strong) NSArray *previousSelectedUrls;
 
 @end

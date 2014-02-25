@@ -73,6 +73,7 @@
 }
 
 - (IBAction)chooseMultiplePhotoButtonTapped:(id)sender {
+    
     EMWebImagePickerViewController *webImagePicker = [[EMWebImagePickerViewController alloc] initWithURLs:self.urls completed:^(EMWebImagePickerViewController *picker, NSArray *selectedIndicies) {
         [self.photoSliderTimer invalidate];
         self.photoSliderTimer = nil;
@@ -89,12 +90,18 @@
     }];
     
     webImagePicker.type = EMWebImagePickerTypeMultiple;
+    if (self.imageURLs) {
+        webImagePicker.previousSelectedUrls = self.imageURLs;
+    }
     [self presentViewController:webImagePicker animated:YES completion:nil];
 }
 
 - (IBAction)deselectMultiplePhotoButtonTapped:(id)sender {
     EMWebImagePickerViewController *webImagePicker = [[EMWebImagePickerViewController alloc] initWithURLs:self.urls];
     webImagePicker.type = EMWebImagePickerTypeMultipleDeselect;
+    if (self.imageURLs) {
+        webImagePicker.previousSelectedUrls = self.imageURLs;
+    }
     webImagePicker.delegate = self;
     [self presentViewController:webImagePicker animated:YES completion:nil];
 }
