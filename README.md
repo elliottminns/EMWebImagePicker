@@ -11,9 +11,9 @@ An iOS Image picker for URL based images
 
 ## Installation
 
-### Cocoapods
+### CocoaPods
 
-To install via Cocoapods, add the following line to your Podfile.
+To install via CocoaPods, add the following line to your Podfile.
 
 ``
 pod 'EMWebImagePicker'
